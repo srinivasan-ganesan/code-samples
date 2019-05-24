@@ -1,3 +1,7 @@
+Submission comments from Srinivasan Ganesan
+============================================
+I used Eclipse for this. So you can import it as a project ("General-->Existing Project from Workspace").  I used Tomcat but you should be able to use pretty much any server to test. URL I used -- http://localhost:8090/NavTree/navTree/store.  Tests folder has json responses for the IDs I ran.  If you have any questions/issues, please reach out.  Thank you!
+
 Bodybuilding.com coding-challenge
 ================
 
@@ -46,7 +50,7 @@ Resulting in:
 
 #### Submission
 * Please create a branch for your work, when ready issue a pull request.
-* Make sure you update this  *README* to explains how to start your API. Feel free to mention any important decisions
+* Make sure you update this  *README* to explain how to start your API. Feel free to mention any important decisions
 about the project architecture / layout that you think we should know.
 * Include working unit tests
 * Please note, when the interview process has concluded you will be removed from the github team, which will also delete your fork of our private repo.
