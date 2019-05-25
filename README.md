@@ -1,6 +1,6 @@
 Submission comments from Srinivasan Ganesan
 ============================================
-I used Eclipse for this. So you can import it as a project ("General-->Existing Project from Workspace").  I used Tomcat but you should be able to use pretty much any server to test. URL I used -- http://localhost:8090/NavTree/navTree/store.  Tests folder has json responses for the IDs I ran.  If you have any questions/issues, please reach out.  Thank you!
+I used Eclipse for this. So you can import it as a project ("General-->Existing Project into Workspace").  I used Tomcat but you should be able to use pretty much any server to test. 1.8.x JDK and JRE versions. URL I used -- http://localhost:8090/NavTree/navTree/store.  Tests folder has json responses for the IDs I ran.  If you have any questions/issues, please reach out.  Thank you!
 
 Bodybuilding.com coding-challenge
 ================
