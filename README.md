@@ -1,6 +1,13 @@
 Submission comments from Srinivasan Ganesan
 ============================================
-I used Eclipse for this. So you can import it as a project ("General-->Existing Project into Workspace").  I used Tomcat but you should be able to use pretty much any server to test. 1.8.x JDK and JRE versions. URL I used -- http://localhost:8090/NavTree/navTree/store.  Tests folder has json responses for the IDs I ran.  If you have any questions/issues, please reach out.  Thank you!
+I used Eclipse for this. So you can import it as a project ("General-->Existing Project into Workspace").  I used Tomcat but you should be able to use pretty much any server to test. Used 1.8.x JDK and JRE versions. Sample URL -- http://localhost:8090/NavTree/navTree/store.  Tests folder (separate from the project tests package) has json responses for the IDs I ran.  
+
+Approach/Steps:
+                1. Read tree (with jackson)
+                2. Traverse (when node with matching id found, ignore all future nodes except the immediate descendants of root).
+                3. Prune the nodes that are on the left of the matching node
+
+If you have any questions/issues, please reach out.  Thank you!
 
 Bodybuilding.com coding-challenge
 ================
