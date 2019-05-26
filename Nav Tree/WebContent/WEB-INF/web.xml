@@ -24,7 +24,7 @@
   </servlet-mapping>
   <listener>
 	<listener-class>
-             com.bodybuilding.navTree.NavTreeContextListener 
+             com.bodybuilding.navTree.listener.NavTreeContextListener 
         </listener-class>
    </listener>
 </web-app>

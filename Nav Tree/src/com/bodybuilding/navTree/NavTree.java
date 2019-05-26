@@ -1,5 +1,6 @@
 package com.bodybuilding.navTree;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.servlet.ServletContext;
@@ -11,6 +12,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.bodybuilding.navTree.pojo.Node;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -20,12 +22,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class NavTree {
 	private JsonNode rootNode = null;
 	private String input = null;
-	private boolean removeLeaves;
-	private boolean foundMatch;
-	private String matchedParent;
 	private JsonNode result;
-	private boolean processAncestor = false;
-	private String ancestor = null;
+	private String parentId = null;
+	private Node tree = null;
+	private ArrayList<String> path;
+	private boolean removePathNotNeeded = false;
 
 	@Context
 	private ServletContext context;
@@ -33,44 +34,54 @@ public class NavTree {
 	@GET
 	@Path("/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String prunedTree(@PathParam("id") String id) throws Exception {
-		if (context.getAttribute("json") != null) {
-			String json = (String) context.getAttribute("json");
-			input = (id != null ? id : "root");
+	public Response prunedTree(@PathParam("id") final String id) throws Exception {
+		if (context.getAttribute("json") != null) {			
+			// Load Json
+			final String json = (String) context.getAttribute("json");
+			input = id != null ? id : "root";
 
-			ObjectMapper objectMapper = new ObjectMapper();			
+			// Read tree
+			final ObjectMapper objectMapper = new ObjectMapper();
+			tree = new Node("root");
+			rootNode = objectMapper.readTree(json);			
+			result = traverse(rootNode);
 
-			// tree traversal
-			rootNode = objectMapper.readTree(json);
-			result = traverse(rootNode);			
+			// Prune paths not needed
+			prunePathNotNeeded(tree);			
+
+			// Error
+			if (result == null) {
+				return Response.status(404).entity("ID not found").type(MediaType.APPLICATION_JSON.toString()).build();
+			}
+
 			
-			if (input.contentEquals("root")) {
-				return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
-			}
-
-			// error
-			if (!foundMatch) {
-				return Response.status(404).entity("ID not found").type(MediaType.APPLICATION_JSON.toString()).build()
-						.toString();
-			}
-						
-			// remove leaf nodes
-			removeLeaves = true;
-			traverse(result);
-			if(ancestor != null) {
-				removeLeaves = false;
-				processAncestor = true;
-				traverse(result);
-			}
-			
-			// return result as String
-			return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(result);
+			// Return response
+			return Response.ok(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(result)).build();
 		}
 
-		throw new Exception("Unexpected Error");
+		throw new Exception("Unable to load JSON");
 	}
+	
+	private void prunePathNotNeeded(final Node tree) {
+		final Node pathNode = Node.search(tree, input);
 
-	private JsonNode traverse(JsonNode node) {
+		if (pathNode != null) {
+			path = new ArrayList<>();
+			path.add(pathNode.getId());
+			Node parent = pathNode.getParent();
+			while (parent != null) {
+				path.add(parent.getId());
+				parent = parent.getParent();
+			}			
+			
+			removePathNotNeeded = true;
+			result = traverse(result);
+		} else {
+			result = null;
+		}
+	}
+	
+	private JsonNode traverse(final JsonNode node) {
 		if (node instanceof ObjectNode) {
 			traverseObject(node);
 		} else if (node instanceof ArrayNode) {
@@ -79,55 +90,36 @@ public class NavTree {
 		return node;
 	}
 
-	private void traverseArray(JsonNode node, String parentId) {
-		Iterator<JsonNode> itr = node.elements();		
+	private void traverseArray(final JsonNode node, final String parentId) {
+		final Iterator<JsonNode> itr = node.elements();
 		while (itr.hasNext()) {
-			JsonNode currentNode = itr.next();
-			ObjectNode object = (ObjectNode) currentNode;
-			if (removeLeaves) {
-				if((matchedParent.contentEquals("root") || input.contentEquals("root"))
-						&& !object.get("parentId").asText().contentEquals("root")) {
-					itr.remove();
-					continue;
-				} else if ((object.get("parentId").asText().contentEquals(matchedParent)
-						&& !object.get("id").asText().contentEquals(input))
-						&& !object.get("parentId").asText().contentEquals("root")) {
-					itr.remove();
-					continue;
-				}
+			final JsonNode currentNode = itr.next();
+			final ObjectNode object = (ObjectNode) currentNode;
 
-				if (object.get("id").asText().contentEquals(matchedParent)) {
-					ancestor = object.get("parentId").asText();
-				}
-
-			} else if(processAncestor) {
-				if ((object.get("parentId").asText().contentEquals(ancestor)
-						&& !object.get("id").asText().contentEquals(matchedParent))) {
-					itr.remove();
-					continue;
-				}
-			} else {
+			if (removePathNotNeeded && path != null && !path.contains(object.get("id").asText())
+					&& !object.get("parentId").asText().equals("root")) {
+				itr.remove();
+				continue;
+			} else if (!removePathNotNeeded) {
 				object.put("parentId", parentId);
-				if (foundMatch && !object.get("parentId").asText().equals("root")) {					
-					itr.remove();
-					continue;
-				}
+				this.parentId = parentId;
 			}
+
 			traverse(currentNode);
 		}
 	}
 
-	private void traverseObject(JsonNode node) {
-		ObjectNode object = (ObjectNode) node;
-		Iterator<JsonNode> itr = object.elements();
+	private void traverseObject(final JsonNode node) {
+		final ObjectNode object = (ObjectNode) node;
+		
+		final Node n = new Node(object.get("id").asText());
+		tree.addChild(n, parentId);
+		
+		final Iterator<JsonNode> itr = object.elements();
 		while (itr.hasNext()) {
-			JsonNode currentNode = itr.next();
+			final JsonNode currentNode = itr.next();
 			if (currentNode instanceof ArrayNode) {
 				traverseArray(currentNode, object.get("id").asText());
-			}			
-			if (currentNode.asText().contentEquals(input)) {
-				matchedParent = object.get("parentId") != null ? object.get("parentId").asText() : null;
-				foundMatch = true;
 			}
 		}
 	}
