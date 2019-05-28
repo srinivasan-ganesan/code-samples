@@ -1,14 +1,3 @@
-Running Project on Eclipse
----------------------------
-I used Eclipse for this. So you can import it as a project ("General-->Existing Project into Workspace").  I used Tomcat but you should be able to use pretty much any server to test. Used 1.8.x JDK and JRE versions. Sample URL -- http://localhost:8090/NavTree/navTree/store.  Tests folder (separate from the project tests package) has json responses for the IDs I ran.  
-
-Approach/Steps:
-                1. Read tree (with jackson)
-                2. Traverse (when node with matching id found, ignore all future nodes except the immediate descendants of root).
-                3. Prune the nodes that are on the left of the matching node
-
-If you have any questions/issues, please reach out.  Thank you!
-
 Project Details
 ------------------
 * The REST API loads and parses navigation.json into memory once at application startup. 
@@ -44,4 +33,16 @@ Similarly for this node:
 Results in:
 
 ![Initial Tree](result_tree2.jpg)
+
+Running Project on Eclipse
+---------------------------
+I used Eclipse for this. So you can import it as a project ("General-->Existing Project into Workspace").  I used Tomcat but you should be able to use pretty much any server to test. Used 1.8.x JDK and JRE versions. Sample URL -- http://localhost:8090/NavTree/navTree/store.  Tests folder (separate from the project tests package) has json responses for the IDs I ran.  
+
+Approach/Steps:
+                1. Read tree (with jackson)
+                2. Traverse (when node with matching id found, ignore all future nodes except the immediate descendants of root).
+                3. Prune the nodes that are on the left of the matching node
+
+If you have any questions/issues, please reach out.  Thank you!
+
 
